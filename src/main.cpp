@@ -18,5 +18,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http:www.gnu.org/licenses/>.
 
+#include <string>
+#include <iostream>
+#include <boost/lexical_cast.hpp>
 
-int main(int argc, const char *argv[]) { return 0; }
+int main(int argc, const char *argv[]) { 
+
+	int count = 1;
+
+	std::string yours = boost::lexical_cast<std::string>(count);
+
+	std::cout << "yours:" << yours << std::endl;
+	return 0;
+}
