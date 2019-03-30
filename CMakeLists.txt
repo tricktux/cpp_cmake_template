@@ -22,6 +22,32 @@ if (USE_CLANG)
 	SET (CMAKE_RANLIB       "/usr/bin/llvm-ranlib" )
 endif (USE_CLANG)
 
+INCLUDE(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
+
+# Build with c++17 support
+IF(COMPILER_SUPPORTS_CXX17)
+	SET(CMAKE_CXX_STANDARD 17)
+ELSE()
+	MESSAGE(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++17 support.")
+ENDIF()
+
+# add flags to release mode
+# by default won't use release mode
+SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS}")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-strict-aliasing")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wfatal-errors -Wextra -Wunused -Werror")
+
+# always compile libnvc in debug mode
+# for trace message use LIBNVC_DEBUG_ARG_LIST to enable
+SET(CMAKE_BUILD_TYPE "Debug")
+SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS}")
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb3 -pedantic")
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-strict-aliasing")
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wunused -Werror")
 
 # if(NOT CMAKE_BUILD_TYPE)
 	# set(CMAKE_BUILD_TYPE "Release" CACHE STRING
@@ -46,9 +72,6 @@ find_package(GLog REQUIRED)
 find_package(GTest REQUIRED)
 
 find_package(Boost REQUIRED)
-
-# Build with c++17 support
-set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory("src")
 add_subdirectory("docs")
