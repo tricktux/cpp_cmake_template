@@ -45,6 +45,8 @@ find_package(GLog REQUIRED)
 
 find_package(GTest REQUIRED)
 
+find_package(Boost REQUIRED)
+
 # Build with c++17 support
 set(CMAKE_CXX_STANDARD 17)
 
