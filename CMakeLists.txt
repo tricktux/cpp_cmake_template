@@ -49,6 +49,7 @@ find_package(GTest REQUIRED)
 set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory("src")
+add_subdirectory("docs")
 
 option(ENABLE_TESTS "Build tests" OFF)
 if(ENABLE_TESTS)
