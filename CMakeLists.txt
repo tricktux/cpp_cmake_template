@@ -13,6 +13,29 @@ project(ProjectName)
 
 option(USE_CLANG "build application with clang" ON) # ON is the default
 
+OPTION(ENABLE_ASAN "Enable ASAN" OFF)
+OPTION(ENABLE_USAN "Enable USAN" OFF)
+OPTION(ENABLE_TSAN "Enable TSAN" OFF)
+
+IF(ENABLE_ASAN)
+	MESSAGE(STATUS "ASAN enabled")
+	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
+ENDIF()
+
+IF(ENABLE_USAN)
+	MESSAGE(STATUS "USAN enabled")
+	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined")
+ENDIF()
+
+IF(ENABLE_TSAN)
+	MESSAGE(STATUS "TSAN enabled")
+	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=thread")
+ENDIF()
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb3 -pedantic")
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-strict-aliasing")
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wunused -Werror")
+
 if (USE_CLANG)
 	SET (CMAKE_CXX_COMPILER "/usr/bin/clang++" )
 	SET (CMAKE_AR           "/usr/bin/llvm-ar" )
