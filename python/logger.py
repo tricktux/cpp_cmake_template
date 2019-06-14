@@ -17,7 +17,7 @@ def set_logger(filename="", size=100, num_backups=5, fmt="", name=""):
     size is mb
     """
 
-    size *= 1024*1024
+    size *= 1024 * 1024
 
     if not filename:
         try:
@@ -46,6 +46,7 @@ def set_logger(filename="", size=100, num_backups=5, fmt="", name=""):
     formatter = logging.Formatter(fmt=format)
     rhandler.setFormatter(formatter)
     logger.addHandler(rhandler)
+    return logger
 
 
 def testaing():
@@ -60,4 +61,10 @@ if __name__ == '__main__':
     set_logger()
     logger = logging.getLogger(__file__)
     logger.debug("this testname.")
-    testaing()
+    # Reset logger. Starts a new one
+    logger.handlers[0].doRollover()
+    # Example of logging an exception
+    try:
+        testaing()
+    except Exception as e:
+        logger.error('Failed to open file', exc_info=True)
