@@ -29,45 +29,54 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 		"Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-# Download dependencies
-file(GLOB EXTERNAL_SUBDIR
-	"${CMAKE_CURRENT_SOURCE_DIR}/cmake/external/*.cmake")
+if (EXISTS "${CMAKE_SOURCE_DIR}/cmake")
+	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+		"${CMAKE_SOURCE_DIR}/cmake")
 
-foreach (DEPS ${EXTERNAL_SUBDIR})
-	include(${DEPS})
-endforeach ()
+	if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/external")
+		# Download dependencies
+		file(GLOB EXTERNAL_SUBDIR
+			"${CMAKE_SOURCE_DIR}/cmake/external/*.cmake")
+
+		foreach (DEPS ${EXTERNAL_SUBDIR})
+			include(${DEPS})
+		endforeach ()
+	endif ()
+
+endif ()
 
 # Options
-option(USE_CLANG "build application with clang" ON)
+option(USE_CLANG "build application with clang" OFF)
 option(ENABLE_ASAN "Enable ASAN" OFF)
 option(ENABLE_USAN "Enable USAN" OFF)
 option(ENABLE_TSAN "Enable TSAN" OFF)
 option(ENABLE_TESTS "Build tests" OFF)
 option(ENABLE_CLANG_TIDY "Use clang-tidy" OFF)
 
-if(ENABLE_ASAN)
+if(ENABLE_ASAN AND CMAKE_BUILD_TYPE EQUAL Debug)
 	message(STATUS "ASAN enabled")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
 endif()
 
-if(ENABLE_USAN)
+if(ENABLE_USAN AND CMAKE_BUILD_TYPE EQUAL Debug)
 	message(STATUS "USAN enabled")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined")
 endif()
 
-if(ENABLE_TSAN)
+if(ENABLE_TSAN AND CMAKE_BUILD_TYPE EQUAL Debug)
 	message(STATUS "TSAN enabled")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=thread")
 endif()
 
-if (USE_CLANG)
+if (USE_CLANG OR ${CMAKE_CXX_COMPILER_ID} EQUAL "Clang")
+	set(CMAKE_C_COMPILER	"clang" )
 	set(CMAKE_CXX_COMPILER "clang++" )
 	set(CMAKE_AR           "llvm-ar" )
 	set(CMAKE_LINKER       "llvm-ld" )
 	set(CMAKE_NM           "llvm-nm" )
 	set(CMAKE_OBJDUMP      "llvm-objdump" )
 	set(CMAKE_RANLIB       "llvm-ranlib" )
-endif (USE_CLANG)
+endif ()
 
 if (ENABLE_CLANG_TIDY)
 	message(STATUS "ASAN enabled")
@@ -107,9 +116,6 @@ set(CMAKE_CXX_FLAGS_DEBUG
 set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin")
 
 # Include custom macros to find Glog.
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-	"${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(RapidJSON REQUIRED)
@@ -121,9 +127,10 @@ find_package(GTest REQUIRED)
 find_package(Boost REQUIRED)
 
 add_subdirectory("src")
-add_subdirectory("docs")
+# TODO fix doxygen
+# add_subdirectory("docs")
 
-if(ENABLE_TESTS)
+if(ENABLE_TESTS AND EXISTS "${CMAKE_SOURCE_DIR}/tests")
 	enable_testing()
 	add_subdirectory("tests")
 endif()
@@ -131,7 +138,9 @@ endif()
 include (GNUInstallDirs)
 install (TARGETS ExecutableName)
 # Copy all config files to /etc
-install (FILES
-		GLOB "${CMAKE_SOURCE_DIR}/config/*.*"
-		DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}
-	)
+if (EXISTS "${CMAKE_SOURCE_DIR}/config")
+	install (FILES
+			GLOB "${CMAKE_SOURCE_DIR}/config/*.*"
+			DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}
+		)
+endif ()
