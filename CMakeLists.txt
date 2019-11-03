@@ -29,11 +29,13 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 		"Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-option(USE_CLANG "build application with clang" ON) # ON is the default
-
+# Options
+option(USE_CLANG "build application with clang" ON)
 option(ENABLE_ASAN "Enable ASAN" OFF)
 option(ENABLE_USAN "Enable USAN" OFF)
 option(ENABLE_TSAN "Enable TSAN" OFF)
+option(ENABLE_TESTS "Build tests" OFF)
+option(ENABLE_CLANG_TIDY "Use clang-tidy" OFF)
 
 if(ENABLE_ASAN)
 	message(STATUS "ASAN enabled")
@@ -57,20 +59,26 @@ if (USE_CLANG)
 	set(CMAKE_NM           "llvm-nm" )
 	set(CMAKE_OBJDUMP      "llvm-objdump" )
 	set(CMAKE_RANLIB       "llvm-ranlib" )
-
-	set(CMAKE_CXX_CLANG_TIDY clang-tidy; -p "${CMAKE_BINARY_DIR}"; -checks=*;)
 endif (USE_CLANG)
 
-INCLUDE(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
+if (ENABLE_CLANG_TIDY)
+	message(STATUS "ASAN enabled")
+	set(CMAKE_CXX_CLANG_TIDY clang-tidy;
+		-p ${CMAKE_BINARY_DIR};
+		-checks=*
+		)
+endif (ENABLE_CLANG_TIDY)
+
+include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag("-std=c++17" COMPILER_SUPPORTS_CXX17)
 
 # Build with c++17 support
-IF(COMPILER_SUPPORTS_CXX17)
-	SET(CMAKE_CXX_STANDARD 17)
-ELSE()
-	MESSAGE(FATAL_ERROR
+if(COMPILER_SUPPORTS_CXX17)
+	set(CMAKE_CXX_STANDARD 17)
+else()
+	message(FATAL_ERROR
 		"The compiler ${CMAKE_CXX_COMPILER} has no C++17 support.")
-ENDIF()
+endif()
 
 # add flags to release mode
 set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS}")
@@ -107,8 +115,15 @@ find_package(Boost REQUIRED)
 add_subdirectory("src")
 add_subdirectory("docs")
 
-option(ENABLE_TESTS "Build tests" OFF)
 if(ENABLE_TESTS)
 	enable_testing()
 	add_subdirectory("tests")
 endif()
+
+include (GNUInstallDirs)
+install (TARGETS ExecutableName)
+# Copy all config files to /etc
+install (FILES
+	GLOB "${CMAKE_SOURCE_DIR}/config/*.*"
+	DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}
+	)
