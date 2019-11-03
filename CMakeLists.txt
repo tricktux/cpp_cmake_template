@@ -84,15 +84,19 @@ if (ENABLE_CLANG_TIDY)
 		)
 endif (ENABLE_CLANG_TIDY)
 
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-std=c++17" COMPILER_SUPPORTS_CXX17)
-
 # Build with c++17 support
-if(COMPILER_SUPPORTS_CXX17)
-	set(CMAKE_CXX_STANDARD 17)
+set (CXX_COMPILER_FLAG 17)
+include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag("-std=c++${CXX_COMPILER_FLAG}"
+	COMPILER_SUPPORTS_CXX_VERSION)
+
+if(COMPILER_SUPPORTS_CXX_VERSION)
+	message (STATUS 
+		"The compiler ${CMAKE_CXX_COMPILER} has C++${CXX_COMPILER_FLAG} support.")
+	set(CMAKE_CXX_STANDARD ${CXX_COMPILER_FLAG})
 else()
 	message(FATAL_ERROR
-		"The compiler ${CMAKE_CXX_COMPILER} has no C++17 support.")
+		"The compiler ${CMAKE_CXX_COMPILER} has no C++${CXX_COMPILER_FLAG} support.")
 endif()
 
 # add flags to release mode
