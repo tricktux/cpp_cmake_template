@@ -11,6 +11,9 @@ cmake_minimum_required(VERSION 3.1)
 # Set ProjectName
 project(ProjectName)
 
+# This points to the build directory
+message( STATUS "CMAKE_BINARY_DIR: " ${CMAKE_BINARY_DIR} )
+
 # Set a default build type if none was specified
 set(default_build_type "Release")
 if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
@@ -28,32 +31,34 @@ endif()
 
 option(USE_CLANG "build application with clang" ON) # ON is the default
 
-OPTION(ENABLE_ASAN "Enable ASAN" OFF)
-OPTION(ENABLE_USAN "Enable USAN" OFF)
-OPTION(ENABLE_TSAN "Enable TSAN" OFF)
+option(ENABLE_ASAN "Enable ASAN" OFF)
+option(ENABLE_USAN "Enable USAN" OFF)
+option(ENABLE_TSAN "Enable TSAN" OFF)
 
-IF(ENABLE_ASAN)
-	MESSAGE(STATUS "ASAN enabled")
-	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
-ENDIF()
+if(ENABLE_ASAN)
+	message(STATUS "ASAN enabled")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
+endif()
 
-IF(ENABLE_USAN)
-	MESSAGE(STATUS "USAN enabled")
-	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined")
-ENDIF()
+if(ENABLE_USAN)
+	message(STATUS "USAN enabled")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined")
+endif()
 
-IF(ENABLE_TSAN)
-	MESSAGE(STATUS "TSAN enabled")
-	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=thread")
-ENDIF()
+if(ENABLE_TSAN)
+	message(STATUS "TSAN enabled")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=thread")
+endif()
 
 if (USE_CLANG)
-	SET (CMAKE_CXX_COMPILER "/usr/bin/clang++" )
-	SET (CMAKE_AR           "/usr/bin/llvm-ar" )
-	SET (CMAKE_LINKER       "/usr/bin/llvm-ld" )
-	SET (CMAKE_NM           "/usr/bin/llvm-nm" )
-	SET (CMAKE_OBJDUMP      "/usr/bin/llvm-objdump" )
-	SET (CMAKE_RANLIB       "/usr/bin/llvm-ranlib" )
+	set(CMAKE_CXX_COMPILER "clang++" )
+	set(CMAKE_AR           "llvm-ar" )
+	set(CMAKE_LINKER       "llvm-ld" )
+	set(CMAKE_NM           "llvm-nm" )
+	set(CMAKE_OBJDUMP      "llvm-objdump" )
+	set(CMAKE_RANLIB       "llvm-ranlib" )
+
+	set(CMAKE_CXX_CLANG_TIDY clang-tidy; -p "${CMAKE_BINARY_DIR}"; -checks=*;)
 endif (USE_CLANG)
 
 INCLUDE(CheckCXXCompilerFlag)
@@ -68,19 +73,18 @@ ELSE()
 ENDIF()
 
 # add flags to release mode
-# by default won't use release mode
-SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS}")
-SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
-SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-strict-aliasing")
-SET(CMAKE_CXX_FLAGS_RELEASE
+set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS}")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-strict-aliasing")
+set(CMAKE_CXX_FLAGS_RELEASE
 	"${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wfatal-errors -Wextra -Wunused -Werror")
 
-SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS}")
-SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
-SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb3 -pedantic")
-SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-strict-aliasing")
-SET(CMAKE_CXX_FLAGS_DEBUG
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb3 -pedantic")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-strict-aliasing")
+set(CMAKE_CXX_FLAGS_DEBUG
 	"${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wunused -Werror")
 
 # Specify output directories.
@@ -90,7 +94,7 @@ set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 	"${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(RapidJSON REQUIRED)
 
