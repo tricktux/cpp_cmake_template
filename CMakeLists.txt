@@ -32,32 +32,38 @@ endif()
 if (EXISTS "${CMAKE_SOURCE_DIR}/cmake")
 	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 		"${CMAKE_SOURCE_DIR}/cmake")
+endif ()
 
-	# Set sanitizers
-	if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/sanitizers")
-		set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-			"${CMAKE_SOURCE_DIR}/cmake/sanitizers")
-	endif ()
+# Set sanitizers
+if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/sanitizers")
+	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+		"${CMAKE_SOURCE_DIR}/cmake/sanitizers")
+	set (SANITIZERS_FOUND ON)
+endif ()
 
-	# Download dependencies
-	if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/external")
-		file(GLOB EXTERNAL_SUBDIR
-			"${CMAKE_SOURCE_DIR}/cmake/external/*.cmake")
 
-		foreach (DEPS ${EXTERNAL_SUBDIR})
-			include(${DEPS})
-		endforeach ()
-	endif ()
+# Download dependencies
+if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/external")
+	file(GLOB EXTERNAL_SUBDIR
+		"${CMAKE_SOURCE_DIR}/cmake/external/*.cmake")
+
+	foreach (DEPS ${EXTERNAL_SUBDIR})
+		include(${DEPS})
+	endforeach ()
 endif ()
 
 # Options
 # You can achieve the same behavior by doing CC=clang CXX=clang++ cmake ..
 option(USE_CLANG "Build application with clang" ON)
 # Depends on clang and llvm being installed
-option(SANITIZE_ADDRESS "Enable Address Sanitizer" OFF)
-option(SANITIZE_MEMORY "Enable Memory Sanitizer" OFF)
-option(SANITIZE_THREAD "Enable Thread Sanitizer" OFF)
-option(SANITIZE_UNDEFINED "Enable Undefined Behavior Sanitizer" OFF)
+# cmake -DSANITIZE_ADDRESS=ON ..
+# ./bin/<executable_name>
+if (SANITIZERS_FOUND)
+	option(SANITIZE_ADDRESS "Enable Address Sanitizer" OFF)
+	option(SANITIZE_MEMORY "Enable Memory Sanitizer" OFF)
+	option(SANITIZE_THREAD "Enable Thread Sanitizer" OFF)
+	option(SANITIZE_UNDEFINED "Enable Undefined Behavior Sanitizer" OFF)
+endif ()
 option(ENABLE_TESTS "Build tests" OFF)
 option(ENABLE_CLANG_TIDY "Use clang-tidy" OFF)
 
@@ -119,7 +125,9 @@ find_package(GTest REQUIRED)
 
 find_package(Boost REQUIRED)
 
-find_package(Sanitizers REQUIRED)
+if (SANITIZERS_FOUND)
+	find_package(Sanitizers REQUIRED)
+endif ()
 
 add_subdirectory("src")
 # TODO fix doxygen
