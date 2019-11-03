@@ -29,12 +29,12 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 		"Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
+# Download dependencies
 if (EXISTS "${CMAKE_SOURCE_DIR}/cmake")
 	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 		"${CMAKE_SOURCE_DIR}/cmake")
 
 	if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/external")
-		# Download dependencies
 		file(GLOB EXTERNAL_SUBDIR
 			"${CMAKE_SOURCE_DIR}/cmake/external/*.cmake")
 
@@ -46,36 +46,34 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/cmake")
 endif ()
 
 # Options
-option(USE_CLANG "build application with clang" OFF)
+# You can achieve the same behavior by doing CC=clang CXX=clang++ cmake ..
+option(USE_CLANG "Build application with clang" ON)
 option(ENABLE_ASAN "Enable ASAN" OFF)
 option(ENABLE_USAN "Enable USAN" OFF)
 option(ENABLE_TSAN "Enable TSAN" OFF)
 option(ENABLE_TESTS "Build tests" OFF)
 option(ENABLE_CLANG_TIDY "Use clang-tidy" OFF)
 
-if(ENABLE_ASAN AND CMAKE_BUILD_TYPE EQUAL Debug)
+# Remember to use Debug builds
+if(ENABLE_ASAN)
 	message(STATUS "ASAN enabled")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
 endif()
 
-if(ENABLE_USAN AND CMAKE_BUILD_TYPE EQUAL Debug)
+if(ENABLE_USAN)
 	message(STATUS "USAN enabled")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined")
 endif()
 
-if(ENABLE_TSAN AND CMAKE_BUILD_TYPE EQUAL Debug)
+if(ENABLE_TSAN)
 	message(STATUS "TSAN enabled")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=thread")
 endif()
 
-if (USE_CLANG OR ${CMAKE_CXX_COMPILER_ID} EQUAL "Clang")
+if (USE_CLANG)
+	message(STATUS "Clang Compiler enabled")
 	set(CMAKE_C_COMPILER	"clang" )
 	set(CMAKE_CXX_COMPILER "clang++" )
-	set(CMAKE_AR           "llvm-ar" )
-	set(CMAKE_LINKER       "llvm-ld" )
-	set(CMAKE_NM           "llvm-nm" )
-	set(CMAKE_OBJDUMP      "llvm-objdump" )
-	set(CMAKE_RANLIB       "llvm-ranlib" )
 endif ()
 
 if (ENABLE_CLANG_TIDY)
