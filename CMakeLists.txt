@@ -29,6 +29,14 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 		"Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
+# Download dependencies
+file(GLOB EXTERNAL_SUBDIR
+	"${CMAKE_CURRENT_SOURCE_DIR}/cmake/external/*.cmake")
+
+foreach (DEPS ${EXTERNAL_SUBDIR})
+	include(${DEPS})
+endforeach ()
+
 # Options
 option(USE_CLANG "build application with clang" ON)
 option(ENABLE_ASAN "Enable ASAN" OFF)
@@ -124,6 +132,6 @@ include (GNUInstallDirs)
 install (TARGETS ExecutableName)
 # Copy all config files to /etc
 install (FILES
-	GLOB "${CMAKE_SOURCE_DIR}/config/*.*"
-	DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}
+		GLOB "${CMAKE_SOURCE_DIR}/config/*.*"
+		DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}
 	)
