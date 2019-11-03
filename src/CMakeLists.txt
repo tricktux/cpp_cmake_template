@@ -21,6 +21,7 @@ endif ()
 
 # Set ExecutableName.
 add_executable(ExecutableName ${SOURCES})
+add_sanitizers(ExecutableName)
 
 if (GLOG_FOUND)
 	target_link_libraries(ExecutableName ${GLOG_LIBRARIES})

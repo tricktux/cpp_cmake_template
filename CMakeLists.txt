@@ -29,11 +29,17 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 		"Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-# Download dependencies
 if (EXISTS "${CMAKE_SOURCE_DIR}/cmake")
 	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 		"${CMAKE_SOURCE_DIR}/cmake")
 
+	# Set sanitizers
+	if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/sanitizers")
+		set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+			"${CMAKE_SOURCE_DIR}/cmake/sanitizers")
+	endif ()
+
+	# Download dependencies
 	if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/external")
 		file(GLOB EXTERNAL_SUBDIR
 			"${CMAKE_SOURCE_DIR}/cmake/external/*.cmake")
@@ -42,33 +48,18 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/cmake")
 			include(${DEPS})
 		endforeach ()
 	endif ()
-
 endif ()
 
 # Options
 # You can achieve the same behavior by doing CC=clang CXX=clang++ cmake ..
 option(USE_CLANG "Build application with clang" ON)
-option(ENABLE_ASAN "Enable ASAN" OFF)
-option(ENABLE_USAN "Enable USAN" OFF)
-option(ENABLE_TSAN "Enable TSAN" OFF)
+# Depends on clang and llvm being installed
+option(SANITIZE_ADDRESS "Enable Address Sanitizer" OFF)
+option(SANITIZE_MEMORY "Enable Memory Sanitizer" OFF)
+option(SANITIZE_THREAD "Enable Thread Sanitizer" OFF)
+option(SANITIZE_UNDEFINED "Enable Undefined Behavior Sanitizer" OFF)
 option(ENABLE_TESTS "Build tests" OFF)
 option(ENABLE_CLANG_TIDY "Use clang-tidy" OFF)
-
-# Remember to use Debug builds
-if(ENABLE_ASAN)
-	message(STATUS "ASAN enabled")
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
-endif()
-
-if(ENABLE_USAN)
-	message(STATUS "USAN enabled")
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined")
-endif()
-
-if(ENABLE_TSAN)
-	message(STATUS "TSAN enabled")
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=thread")
-endif()
 
 if (USE_CLANG)
 	message(STATUS "Clang Compiler enabled")
@@ -127,6 +118,8 @@ find_package(GLog REQUIRED)
 find_package(GTest REQUIRED)
 
 find_package(Boost REQUIRED)
+
+find_package(Sanitizers REQUIRED)
 
 add_subdirectory("src")
 # TODO fix doxygen

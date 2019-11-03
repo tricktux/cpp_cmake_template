@@ -22,12 +22,10 @@
 #include <iostream>
 #include <string>
 
-int main(/*int argc, const char *argv[]*/) {
+int main(int argc, const char *argv[]) {
 
-  int count = 1;
-
-  std::string yours = boost::lexical_cast<std::string>(count);
-
-  std::cout << "yours:" << yours << std::endl;
-  return 0;
+	int *arr = new int[100];
+	strcpy((char *) arr, argv[0]);
+	delete [] arr;
+	return arr[argc];  // BOOM
 }
