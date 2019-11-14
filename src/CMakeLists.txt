@@ -4,6 +4,10 @@ file(GLOB SOURCES "*.cpp")
 
 include_directories(${CMAKE_SOURCE_DIR}/inc)
 
+if (CXXOPTS_FOUND)
+	include_directories(${CXXOPTS_INCLUDE_DIRS})
+endif ()
+
 if (GLOG_FOUND)
 	include_directories(SYSTEM "${GLOG_INCLUDE_DIRS}")
 endif ()
@@ -23,7 +27,7 @@ endif ()
 add_executable(ExecutableName ${SOURCES})
 # Depends on external builds
 # This way you can use make -j
-add_dependencies(ExecutableName cxxopts iniparser)
+add_dependencies(ExecutableName cxxopts)
 if (SANITIZERS_FOUND)
 	add_sanitizers(ExecutableName)
 endif ()

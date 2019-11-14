@@ -18,12 +18,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http:www.gnu.org/licenses/>.
 
-#include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <string>
+#include "cxxopts.hpp"
 
 int main(int argc, const char *argv[]) {
 
+	std::cout << "Hello world!\n";
 	int *arr = new int[100];
 	strcpy((char *) arr, argv[0]);
 	delete [] arr;

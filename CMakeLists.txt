@@ -54,7 +54,7 @@ endif ()
 
 # Options
 # You can achieve the same behavior by doing CC=clang CXX=clang++ cmake ..
-option(USE_CLANG "Build application with clang" ON)
+option(USE_CLANG "Build application with clang" OFF)
 # Depends on clang and llvm being installed
 # cmake -DSANITIZE_ADDRESS=ON ..
 # ./bin/<executable_name>
@@ -69,8 +69,12 @@ option(ENABLE_CLANG_TIDY "Use clang-tidy" OFF)
 
 if (USE_CLANG)
 	message(STATUS "Clang Compiler enabled")
-	set(CMAKE_C_COMPILER	"clang" )
-	set(CMAKE_CXX_COMPILER "clang++" )
+	if (MSVC)
+		set(CMAKE_CXX_COMPILER "clang-cl" )
+	else ()
+		set(CMAKE_C_COMPILER	"clang" )
+		set(CMAKE_CXX_COMPILER "clang++" )
+	endif ()
 endif ()
 
 if (ENABLE_CLANG_TIDY)
@@ -79,37 +83,27 @@ if (ENABLE_CLANG_TIDY)
 		-p ${CMAKE_BINARY_DIR};
 		-checks=*
 		)
-endif (ENABLE_CLANG_TIDY)
+endif ()
 
 # Build with c++17 support
-set (CXX_COMPILER_FLAG 17)
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-std=c++${CXX_COMPILER_FLAG}"
-	COMPILER_SUPPORTS_CXX_VERSION)
-
-if(COMPILER_SUPPORTS_CXX_VERSION)
-	message (STATUS 
-		"The compiler ${CMAKE_CXX_COMPILER} has C++${CXX_COMPILER_FLAG} support.")
-	set(CMAKE_CXX_STANDARD ${CXX_COMPILER_FLAG})
-else()
-	message(FATAL_ERROR
-		"The compiler ${CMAKE_CXX_COMPILER} has no C++${CXX_COMPILER_FLAG} support.")
-endif()
+set (CMAKE_CXX_STANDARD 17)
 
 # add flags to release mode
-set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS}")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-strict-aliasing")
-set(CMAKE_CXX_FLAGS_RELEASE
-	"${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wfatal-errors -Wextra -Wunused -Werror")
+if (NOT MSVC)
+	set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS}")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-strict-aliasing")
+	set(CMAKE_CXX_FLAGS_RELEASE
+		"${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wfatal-errors -Wextra -Wunused -Werror")
 
-set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS}")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+	set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS}")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb3 -pedantic")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-strict-aliasing")
-set(CMAKE_CXX_FLAGS_DEBUG
-	"${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wunused -Werror")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb3 -pedantic")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-strict-aliasing")
+	set(CMAKE_CXX_FLAGS_DEBUG
+		"${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wunused -Werror")
+endif ()
 
 # Specify output directories.
 set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin")
@@ -117,13 +111,13 @@ set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin")
 # Include custom macros to find Glog.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(RapidJSON REQUIRED)
+# find_package(RapidJSON REQUIRED)
 
-find_package(GLog REQUIRED)
+# find_package(GLog REQUIRED)
 
-find_package(GTest REQUIRED)
+# find_package(GTest REQUIRED)
 
-find_package(Boost REQUIRED)
+# find_package(Boost REQUIRED)
 
 if (SANITIZERS_FOUND)
 	find_package(Sanitizers REQUIRED)
@@ -139,7 +133,7 @@ if(ENABLE_TESTS AND EXISTS "${CMAKE_SOURCE_DIR}/tests")
 endif()
 
 include (GNUInstallDirs)
-install (TARGETS ExecutableName)
+# install (TARGETS ExecutableName)
 # Copy all config files to /etc
 if (EXISTS "${CMAKE_SOURCE_DIR}/config")
 	install (FILES
