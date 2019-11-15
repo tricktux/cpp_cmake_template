@@ -37,6 +37,21 @@ set (_modules
 
 set (CMAKE_MODULE_PATH _modules)
 
+# Options
+# You can achieve the same behavior by doing CC=clang CXX=clang++ cmake ..
+option(USE_CLANG "Build application with clang" OFF)
+# Depends on clang and llvm being installed
+# cmake -DSANITIZE_ADDRESS=ON ..
+# ./bin/<executable_name>
+option(SANITIZE_ADDRESS "Enable Address Sanitizer" OFF)
+option(SANITIZE_MEMORY "Enable Memory Sanitizer" OFF)
+option(SANITIZE_THREAD "Enable Thread Sanitizer" OFF)
+option(SANITIZE_UNDEFINED "Enable Undefined Behavior Sanitizer" OFF)
+option(SANITIZE_LINK_STATIC "Try to link static against sanitizers." OFF)
+
+option(ENABLE_TESTS "Build tests" OFF)
+option(ENABLE_CLANG_TIDY "Use clang-tidy" OFF)
+
 # Download dependencies
 if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/external")
 	file(GLOB EXTERNAL_SUBDIR
@@ -46,21 +61,6 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/external")
 		include(${DEPS})
 	endforeach ()
 endif ()
-
-# Options
-# You can achieve the same behavior by doing CC=clang CXX=clang++ cmake ..
-option(USE_CLANG "Build application with clang" OFF)
-# Depends on clang and llvm being installed
-# cmake -DSANITIZE_ADDRESS=ON ..
-# ./bin/<executable_name>
-if (SANITIZERS_FOUND)
-	option(SANITIZE_ADDRESS "Enable Address Sanitizer" OFF)
-	option(SANITIZE_MEMORY "Enable Memory Sanitizer" OFF)
-	option(SANITIZE_THREAD "Enable Thread Sanitizer" OFF)
-	option(SANITIZE_UNDEFINED "Enable Undefined Behavior Sanitizer" OFF)
-endif ()
-option(ENABLE_TESTS "Build tests" OFF)
-option(ENABLE_CLANG_TIDY "Use clang-tidy" OFF)
 
 if (USE_CLANG)
 	message(STATUS "Clang Compiler enabled")
@@ -115,7 +115,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # find_package(Boost REQUIRED)
 
-if (SANITIZERS_FOUND)
+if (SANITIZE_ADDRESS OR SANITIZE_MEMORY OR SANITIZE_THREAD OR
+		SANITIZE_UNDEFINED)
 	find_package(Sanitizers REQUIRED)
 endif ()
 
