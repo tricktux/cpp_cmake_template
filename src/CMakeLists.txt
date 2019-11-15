@@ -25,7 +25,13 @@ endif ()
 add_executable(ExecutableName ${SOURCES})
 # Depends on external builds
 # This way you can use make -j
-add_dependencies(ExecutableName cxxopts)
+if (CXXOPTS_FOUND)
+	add_dependencies(ExecutableName cxxopts)
+endif ()
+if (INIPARSER_FOUND)
+	add_dependencies(ExecutableName iniparser)
+endif ()
+
 if (SANITIZERS_FOUND)
 	add_sanitizers(ExecutableName)
 endif ()
