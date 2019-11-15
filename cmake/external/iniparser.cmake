@@ -1,7 +1,7 @@
 include(ExternalProject)
 
 # This project does not support windows
-if (MSVC)
+if (CMAKE_HOST_WIN32)
 	return()
 endif ()
 
