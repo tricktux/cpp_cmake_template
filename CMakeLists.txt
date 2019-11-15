@@ -20,7 +20,7 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
 	set(default_build_type "Debug")
 endif()
 
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 	message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
 	set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
 		STRING "Choose the type of build." FORCE)
@@ -29,18 +29,13 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 		"Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-if (EXISTS "${CMAKE_SOURCE_DIR}/cmake")
-	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-		"${CMAKE_SOURCE_DIR}/cmake")
-endif ()
+set (_modules
+		"${CMAKE_SOURCE_DIR}/cmake"
+		"${CMAKE_SOURCE_DIR}/cmake/sanitizers"
+		"${CMAKE_SOURCE_DIR}/cmake/external"
+	)
 
-# Set sanitizers
-if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/sanitizers")
-	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-		"${CMAKE_SOURCE_DIR}/cmake/sanitizers")
-	set (SANITIZERS_FOUND ON)
-endif ()
-
+set (CMAKE_MODULE_PATH _modules)
 
 # Download dependencies
 if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/external")
