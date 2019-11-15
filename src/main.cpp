@@ -23,11 +23,12 @@
 #include "cxxopts.hpp"
 // #include "iniparser.h"
 
-int main(int argc, const char *argv[]) {
+int main() {
 
 	std::cout << "Hello world!\n";
-	int *arr = new int[100];
-	strcpy((char *) arr, argv[0]);
-	delete [] arr;
-	return arr[argc];  // BOOM
+	// int *arr = new int[100];
+	// strcpy_s((char *) arr, argv[0]);
+	// delete [] arr;
+	// return arr[argc];  // BOOM
+	return 0;
 }

@@ -36,6 +36,10 @@ if (SANITIZERS_FOUND)
 	add_sanitizers(ExecutableName)
 endif ()
 
+# set_target_properties(ExecutableName PROPERTIES COMPILE_OPTIONS
+	# "-m32" LINK_FLAGS "-m32")
+
+# target_link_libraries(ExecutableName -m32)
 if (GLOG_FOUND)
 	target_link_libraries(ExecutableName ${GLOG_LIBRARIES})
 endif ()

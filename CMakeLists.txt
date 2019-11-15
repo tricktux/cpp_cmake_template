@@ -81,6 +81,12 @@ if (ENABLE_CLANG_TIDY)
 		)
 endif ()
 
+set (CMAKE_EXE_LINKER_FLAGS
+		# "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++"
+		"${CMAKE_EXE_LINKER_FLAGS} -static"
+	)
+# add_compile_options("-m32")
+
 # Build with c++17 support
 include(CheckCXXCompilerFlag)
 set (_cpp_version "17")
