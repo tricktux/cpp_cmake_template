@@ -54,10 +54,10 @@ option(ENABLE_CLANG_TIDY "Use clang-tidy" OFF)
 
 # Download dependencies
 if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/external")
-	file(GLOB EXTERNAL_SUBDIR
+	file(GLOB EXTERNAL_DEPS
 		"${CMAKE_SOURCE_DIR}/cmake/external/*.cmake")
 
-	foreach (DEPS ${EXTERNAL_SUBDIR})
+	foreach (DEPS ${EXTERNAL_DEPS})
 		include(${DEPS})
 	endforeach ()
 endif ()
