@@ -19,8 +19,6 @@ endif ()
 # Show more warnings at compiletime.
 if (MSVC)
     # FIXME: put Windows specific options here.
-else ()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 endif ()
 
 # Set ExecutableName.
