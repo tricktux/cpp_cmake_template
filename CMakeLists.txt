@@ -82,10 +82,25 @@ if (ENABLE_CLANG_TIDY)
 endif ()
 
 # Build with c++17 support
-set (CMAKE_CXX_STANDARD 17)
+include(CheckCXXCompilerFlag)
+set (_cpp_version "17")
+if (MSVC AND MSVC_VERSION GREATER_EQUAL "1900")
+	check_cxx_compiler_flag("/std:c++latest" _cpp_latest_flag_supported)
+	if (_cpp_latest_flag_supported)
+		add_compile_options("/std:c++latest")
+	endif()
+else ()
+	check_cxx_compiler_flag("-std=c++${_cpp_version}"
+		_cpp_latest_flag_supported)
+	if (_cpp_latest_flag_supported)
+		add_compile_options("-std=c++${_cpp_version}")
+	endif()
+endif()
 
 # add flags to release mode
-if (NOT MSVC)
+if (MSVC)
+	add_compile_options(/W4 /WX)
+else ()
 	set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS}")
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-strict-aliasing")
