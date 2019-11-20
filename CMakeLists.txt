@@ -49,8 +49,8 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/external")
 	file(GLOB EXTERNAL_DEPS
 		"${CMAKE_SOURCE_DIR}/cmake/external/*.cmake")
 
-	foreach (DEPS ${EXTERNAL_DEPS})
-		include(${DEPS})
+	foreach (DEP ${EXTERNAL_DEPS})
+		include(${DEP})
 	endforeach ()
 endif ()
 
