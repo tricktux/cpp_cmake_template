@@ -44,15 +44,8 @@ option(SANITIZE_LINK_STATIC "Try to link static against sanitizers." OFF)
 option(ENABLE_TESTS "Build tests" OFF)
 option(ENABLE_CLANG_TIDY "Use clang-tidy" OFF)
 
-# Download dependencies
-if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/external")
-	file(GLOB EXTERNAL_DEPS
-		"${CMAKE_SOURCE_DIR}/cmake/external/*.cmake")
-
-	foreach (DEP ${EXTERNAL_DEPS})
-		include(${DEP})
-	endforeach ()
-endif ()
+# Manually include dependencies
+include("${CMAKE_SOURCE_DIR}/cmake/external/cxxopts.cmake")
 
 if (USE_CLANG)
 	message(STATUS "Clang Compiler enabled")
