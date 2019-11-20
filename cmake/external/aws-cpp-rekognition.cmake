@@ -13,7 +13,7 @@ if (UNIX)
 	find_package (CURL REQUIRED)
 endif ()
 
-set(AWS_REKOG_LIBRARIES
+set(_libs
 		${aws-rekog_INSTALL}/lib/libaws-c-common.so
 		${aws-rekog_INSTALL}/lib/libaws-c-event-stream.so
 		${aws-rekog_INSTALL}/lib/libaws-checksums.so
@@ -28,18 +28,22 @@ ExternalProject_Add(
 		GIT_TAG				 1.7.188
 		GIT_SHALLOW		 1
 		GIT_PROGRESS	 1
+		UPDATE_DISCONNECTED TRUE
 		CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 							-DCMAKE_INSTALL_PREFIX=${aws-rekog_INSTALL}
 							-DBUILD_ONLY=rekognition
 							-DENABLE_TESTING=OFF
 							# -DBUILD_SHARED_LIBS=OFF
+							# The generator is set from main generator
 							# -G "Ninja"
 							# -DCPP_STANDARD=${CXX_COMPILER_FLAG}
 							# -DBUILD_DEPS=OFF
-		BUILD_BYPRODUCTS ${AWS_REKOG_LIBRARIES}
+		BUILD_BYPRODUCTS ${_libs}
+		INSTALL_COMMAND ""
 	)
 
 set(AWS_REKOG_FOUND TRUE)
 set(AWS_REKOG_INCLUDE_DIRS ${aws-rekog_INSTALL}/include)
+set(AWS_REKOG_LIBRARIES ${_libs})
 set(AWS_REKOG_LIBRARY_DIRS ${aws-rekog_INSTALL}/lib)
 set(AWS_REKOG_EXTERNAL TRUE)
