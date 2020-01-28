@@ -15,62 +15,47 @@ project(ProjectName)
 message( STATUS "CMAKE_BINARY_DIR: " ${CMAKE_BINARY_DIR} )
 
 # Set a default build type if none was specified
-set(default_build_type "Release")
-if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
-	set(default_build_type "Debug")
-endif()
+set(CMAKE_BUILD_TYPE_INIT "Debug" CACHE
+	STRING "Choose the type of build." FORCE)
+# Set the possible values of build type for cmake-gui
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+	"Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-	message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
-	set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
-		STRING "Choose the type of build." FORCE)
-	# Set the possible values of build type for cmake-gui
-	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-		"Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-endif()
+set (_modules
+		"${CMAKE_SOURCE_DIR}/cmake"
+		"${CMAKE_SOURCE_DIR}/cmake/sanitizers"
+		"${CMAKE_SOURCE_DIR}/cmake/external"
+	)
 
-if (EXISTS "${CMAKE_SOURCE_DIR}/cmake")
-	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-		"${CMAKE_SOURCE_DIR}/cmake")
-endif ()
-
-# Set sanitizers
-if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/sanitizers")
-	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-		"${CMAKE_SOURCE_DIR}/cmake/sanitizers")
-	set (SANITIZERS_FOUND ON)
-endif ()
-
-
-# Download dependencies
-if (EXISTS "${CMAKE_SOURCE_DIR}/cmake/external")
-	file(GLOB EXTERNAL_SUBDIR
-		"${CMAKE_SOURCE_DIR}/cmake/external/*.cmake")
-
-	foreach (DEPS ${EXTERNAL_SUBDIR})
-		include(${DEPS})
-	endforeach ()
-endif ()
+set (CMAKE_MODULE_PATH _modules)
 
 # Options
 # You can achieve the same behavior by doing CC=clang CXX=clang++ cmake ..
-option(USE_CLANG "Build application with clang" ON)
+option(USE_CLANG "Build application with clang" OFF)
 # Depends on clang and llvm being installed
 # cmake -DSANITIZE_ADDRESS=ON ..
 # ./bin/<executable_name>
-if (SANITIZERS_FOUND)
-	option(SANITIZE_ADDRESS "Enable Address Sanitizer" OFF)
-	option(SANITIZE_MEMORY "Enable Memory Sanitizer" OFF)
-	option(SANITIZE_THREAD "Enable Thread Sanitizer" OFF)
-	option(SANITIZE_UNDEFINED "Enable Undefined Behavior Sanitizer" OFF)
-endif ()
+option(SANITIZE_ADDRESS "Enable Address Sanitizer" OFF)
+option(SANITIZE_MEMORY "Enable Memory Sanitizer" OFF)
+option(SANITIZE_THREAD "Enable Thread Sanitizer" OFF)
+option(SANITIZE_UNDEFINED "Enable Undefined Behavior Sanitizer" OFF)
+option(SANITIZE_LINK_STATIC "Try to link static against sanitizers." OFF)
+
 option(ENABLE_TESTS "Build tests" OFF)
 option(ENABLE_CLANG_TIDY "Use clang-tidy" OFF)
 
+# Manually include dependencies
+include("${CMAKE_SOURCE_DIR}/cmake/external/cxxopts.cmake")
+
 if (USE_CLANG)
 	message(STATUS "Clang Compiler enabled")
-	set(CMAKE_C_COMPILER	"clang" )
-	set(CMAKE_CXX_COMPILER "clang++" )
+	if (MSVC)
+		set(CMAKE_C_COMPILER	"clang-cl" )
+		set(CMAKE_CXX_COMPILER "clang-cl" )
+	else ()
+		set(CMAKE_C_COMPILER	"clang" )
+		set(CMAKE_CXX_COMPILER "clang++" )
+	endif ()
 endif ()
 
 if (ENABLE_CLANG_TIDY)
@@ -79,37 +64,48 @@ if (ENABLE_CLANG_TIDY)
 		-p ${CMAKE_BINARY_DIR};
 		-checks=*
 		)
-endif (ENABLE_CLANG_TIDY)
+endif ()
+
+set (CMAKE_EXE_LINKER_FLAGS
+		# "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++"
+		"${CMAKE_EXE_LINKER_FLAGS} -static"
+	)
+# add_compile_options("-m32")
 
 # Build with c++17 support
-set (CXX_COMPILER_FLAG 17)
 include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-std=c++${CXX_COMPILER_FLAG}"
-	COMPILER_SUPPORTS_CXX_VERSION)
-
-if(COMPILER_SUPPORTS_CXX_VERSION)
-	message (STATUS 
-		"The compiler ${CMAKE_CXX_COMPILER} has C++${CXX_COMPILER_FLAG} support.")
-	set(CMAKE_CXX_STANDARD ${CXX_COMPILER_FLAG})
-else()
-	message(FATAL_ERROR
-		"The compiler ${CMAKE_CXX_COMPILER} has no C++${CXX_COMPILER_FLAG} support.")
+set (_cpp_version "17")
+if (MSVC AND MSVC_VERSION GREATER_EQUAL "1900")
+	check_cxx_compiler_flag("/std:c++latest" _cpp_latest_flag_supported)
+	if (_cpp_latest_flag_supported)
+		add_compile_options("/std:c++latest")
+	endif()
+else ()
+	check_cxx_compiler_flag("-std=c++${_cpp_version}"
+		_cpp_latest_flag_supported)
+	if (_cpp_latest_flag_supported)
+		add_compile_options("-std=c++${_cpp_version}")
+	endif()
 endif()
 
 # add flags to release mode
-set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS}")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-strict-aliasing")
-set(CMAKE_CXX_FLAGS_RELEASE
-	"${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wfatal-errors -Wextra -Wunused -Werror")
+if (MSVC)
+	add_compile_options(/W4 /WX)
+else ()
+	set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS}")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-strict-aliasing")
+	set(CMAKE_CXX_FLAGS_RELEASE
+		"${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wfatal-errors -Wextra -Wunused -Werror")
 
-set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS}")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+	set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS}")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb3 -pedantic")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-strict-aliasing")
-set(CMAKE_CXX_FLAGS_DEBUG
-	"${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wunused -Werror")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb3 -pedantic")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-strict-aliasing")
+	set(CMAKE_CXX_FLAGS_DEBUG
+		"${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wunused -Werror")
+endif ()
 
 # Specify output directories.
 set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin")
@@ -117,15 +113,16 @@ set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin")
 # Include custom macros to find Glog.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(RapidJSON REQUIRED)
+# find_package(RapidJSON REQUIRED)
 
-find_package(GLog REQUIRED)
+# find_package(GLog REQUIRED)
 
-find_package(GTest REQUIRED)
+# find_package(GTest REQUIRED)
 
-find_package(Boost REQUIRED)
+# find_package(Boost REQUIRED)
 
-if (SANITIZERS_FOUND)
+if (SANITIZE_ADDRESS OR SANITIZE_MEMORY OR SANITIZE_THREAD OR
+		SANITIZE_UNDEFINED)
 	find_package(Sanitizers REQUIRED)
 endif ()
 
@@ -139,7 +136,7 @@ if(ENABLE_TESTS AND EXISTS "${CMAKE_SOURCE_DIR}/tests")
 endif()
 
 include (GNUInstallDirs)
-install (TARGETS ExecutableName)
+# install (TARGETS ExecutableName)
 # Copy all config files to /etc
 if (EXISTS "${CMAKE_SOURCE_DIR}/config")
 	install (FILES

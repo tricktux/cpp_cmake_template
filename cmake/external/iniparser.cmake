@@ -1,5 +1,10 @@
 include(ExternalProject)
 
+# This project does not support windows
+if (CMAKE_HOST_WIN32)
+	return()
+endif ()
+
 # build directory
 set(iniparser_PREFIX ${CMAKE_BINARY_DIR}/external/iniparser-prefix)
 # install directory
